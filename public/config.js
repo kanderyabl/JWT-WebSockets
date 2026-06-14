@@ -1,0 +1,4 @@
+window.CONFIG = {
+  api: '',
+  ws: '',
+};

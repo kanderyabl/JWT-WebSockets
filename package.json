@@ -1,0 +1,18 @@
+{
+  "name": "jwt-ws-chat",
+  "version": "1.0.0",
+  "description": "Simple site with JWT auth and real-time chat using WebSockets",
+  "main": "server.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.0",
+    "ws": "^8.13.0"
+  }
+}
