@@ -1,0 +1,284 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JWT Chat</title>
+  <style>
+    :root {
+      font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      --bg: #f8fafc;
+      --text: #111827;
+      --muted: #6b7280;
+      --accent: #6b7280;
+      --card: #ffffff;
+      --soft: #f1f5f9;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: linear-gradient(180deg, var(--bg) 0%, #ffffff 100%);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .container { max-width: 1000px; margin: 0 auto; padding: 36px 20px; }
+
+    .card { background: var(--card); border-radius: 20px; padding: 28px; box-shadow: 0 12px 40px rgba(15,23,42,0.06); border:1px solid rgba(15,23,42,0.03); }
+
+    h1 { margin: 0 0 8px 0; font-size: 28px; }
+    p.lead { margin: 0 0 18px 0; color: var(--muted); }
+
+    label { display:block; margin-bottom:6px; color: var(--muted); font-weight:600; }
+    input, textarea { width:100%; padding:12px 14px; border-radius:12px; border:1px solid #e6edf3; background: var(--card); color: var(--text); font-size:15px; }
+    input:focus, textarea:focus { outline:none; box-shadow:0 6px 20px rgba(107,114,128,0.08); border-color: var(--accent); }
+
+    .button-row { display:flex; gap:12px; margin-top:12px; flex-wrap:wrap; }
+    button { padding:12px 18px; border-radius:12px; font-weight:700; cursor:pointer; border: none; }
+    button.primary { background: linear-gradient(90deg, #5b6470, #6b7280); color:#fff; }
+    button.secondary { background: var(--soft); color: var(--muted); border: 1px solid #e9eef3; }
+    button.danger { background: #ef4444; color: #fff; }
+
+    #chat { display:grid; grid-template-columns: 1fr 320px; gap:20px; margin-top:18px; }
+    #messages { min-height:420px; max-height:620px; overflow-y:auto; padding:18px; border-radius:14px; background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%); border:1px solid #eef3f6; }
+
+    .message { margin-bottom:14px; padding:12px 14px; border-radius:12px; background: var(--soft); border: 1px solid #eef3f6; }
+    .message .meta { font-size:0.9rem; color: var(--muted); margin-bottom:6px; }
+
+    .system { color: var(--muted); font-style: italic; padding:10px 12px; border-radius:10px; background:#fbfcfd; border:1px solid #f1f5f9; }
+
+    #chat-form { margin-top:14px; display:grid; gap:10px; }
+    #message-input { min-height:90px; resize:vertical; }
+
+    #user-list { border-radius:14px; padding:16px; background: var(--card); border:1px solid #f1f5f9; }
+    #users { list-style:none; padding:0; margin:0; display:grid; gap:8px; }
+    #users li { padding:10px 12px; border-radius:10px; background:#fbfcfe; color:var(--text); border:1px solid #eef3f6; }
+
+    .hidden { display:none; }
+    .status-row { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:16px; }
+    .error-text { color:#b91c1c; font-weight:600; margin:0; }
+
+    @media (max-width:860px) { #chat { grid-template-columns: 1fr; } #user-list { order:-1; } }
+  </style>
+    }
+
+    .button-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    button {
+      border: none;
+      border-radius: 18px;
+      padding: 14px 20px;
+      font-size: 1rem;
+      font-weight: 700;
+      transition: transform .16s ease, box-shadow .16s ease, opacity .16s ease;
+      cursor: pointer;
+      min-width: 140px;
+    }
+
+    button.primary {
+      background: linear-gradient(135deg, #fb923c, #f43f5e);
+      color: #fff;
+      box-shadow: 0 18px 30px rgba(251, 146, 60, 0.18);
+    }
+
+    button.secondary {
+      background: #fff2ed;
+      color: #7c2d12;
+      border: 1px solid #fed7aa;
+    }
+
+    button.danger {
+      background: #ef4444;
+      color: #fff;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      opacity: 0.98;
+    }
+
+    #chat {
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) 360px;
+      gap: 24px;
+      align-items: start;
+    }
+
+    #messages {
+      min-height: 420px;
+      max-height: 620px;
+      overflow-y: auto;
+      border-radius: 24px;
+      padding: 24px;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.04);
+    }
+
+    .message {
+      margin-bottom: 18px;
+      padding: 16px 18px;
+      border-radius: 20px;
+      background: #fff5ef;
+      border: 1px solid rgba(251, 146, 60, 0.16);
+    }
+
+    .message:last-child {
+      margin-bottom: 0;
+    }
+
+    .message .meta {
+      margin-bottom: 10px;
+      color: #475569;
+      font-size: 0.9rem;
+    }
+
+    .system {
+      color: #6b7280;
+      font-style: italic;
+      background: rgba(248, 250, 252, 0.9);
+      border-radius: 16px;
+      padding: 12px 14px;
+      border: 1px solid rgba(148, 163, 184, 0.16);
+    }
+
+    #chat-form {
+      margin-top: 16px;
+      display: grid;
+      gap: 12px;
+    }
+
+    #message-input {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    #user-list {
+      border-radius: 24px;
+      padding: 20px;
+      background: #fff3ed;
+      border: 1px solid rgba(251, 146, 60, 0.16);
+      box-shadow: 0 12px 24px rgba(15, 23, 42, 0.04);
+    }
+
+    #user-list h3 {
+      margin-top: 0;
+      margin-bottom: 14px;
+      font-size: 1.05rem;
+    }
+
+    #users {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      gap: 10px;
+    }
+
+    #users li {
+      padding: 12px 14px;
+      border-radius: 16px;
+      background: #eff6ff;
+      border: 1px solid rgba(59, 130, 246, 0.15);
+      color: #1e3a8a;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .status-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .status-row strong {
+      font-size: 1rem;
+      color: #111827;
+    }
+
+    .error-text {
+      margin: 0;
+      color: #b91c1c;
+      font-weight: 600;
+    }
+
+    @media (max-width: 860px) {
+      .container {
+        padding: 20px 16px 40px;
+      }
+
+      #chat {
+        grid-template-columns: 1fr;
+      }
+
+      #user-list {
+        order: -1;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <h1>JWT чат</h1>
+      <p>Зарегистрируйся, войди и общайся в реальном времени через WebSocket.</p>
+
+      <div id="auth-panel">
+        <div>
+          <label>Имя</label>
+          <input id="username" placeholder="Введите имя" />
+        </div>
+        <div>
+          <label>Пароль</label>
+          <input id="password" type="password" placeholder="Введите пароль" />
+        </div>
+        <div class="button-row">
+          <button id="btn-register" class="secondary">Зарегистрироваться</button>
+          <button id="btn-login" class="primary">Войти</button>
+        </div>
+        <p id="auth-error" class="error-text"></p>
+      </div>
+
+      <div id="chat-panel" class="hidden">
+        <div class="status-row">
+          <div>
+            <strong>Вошел как <span id="current-user"></span></strong>
+          </div>
+          <button id="btn-logout" class="danger">Выйти</button>
+        </div>
+        <div id="chat">
+          <div>
+            <div id="messages"></div>
+            <form id="chat-form">
+              <textarea id="message-input" rows="3" placeholder="Напиши сообщение..."></textarea>
+              <button type="submit">Отправить</button>
+            </form>
+          </div>
+          <div id="user-list">
+            <h3>Пользователи</h3>
+            <ul id="users"></ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
+
